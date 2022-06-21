@@ -62,6 +62,44 @@ class EthereumUtils {
     return result;
   }
 
+  Future<String> addOwner(String address) async {
+    EthPrivateKey privateKeyCred =
+        EthPrivateKey.fromHex(dotenv.env['METAMASK_PRIVATE_KEY']!);
+    DeployedContract contract = await getDeployedContract();
+    final etherFunction = contract.function("addOwner");
+    final result = await web3client.sendTransaction(
+        privateKeyCred,
+        Transaction.callContract(
+          contract: contract,
+          function: etherFunction,
+          parameters: [EthereumAddress.fromHex(address)],
+          maxGas: 100000,
+        ),
+        chainId: 4,
+        fetchChainIdFromNetworkId: false);
+    return result;
+  }
+
+  Future<String> transferTo(String address, int amount) async {
+    var bigAmount = BigInt.from(amount);
+    // var ethAdress = BigInt.from(address);
+    EthPrivateKey privateKeyCred =
+        EthPrivateKey.fromHex(dotenv.env['METAMASK_PRIVATE_KEY']!);
+    DeployedContract contract = await getDeployedContract();
+    final etherFunction = contract.function("transferTo");
+    final result = await web3client.sendTransaction(
+        privateKeyCred,
+        Transaction.callContract(
+          contract: contract,
+          function: etherFunction,
+          parameters: [EthereumAddress.fromHex(address), bigAmount],
+          maxGas: 30000,
+        ),
+        chainId: 4,
+        fetchChainIdFromNetworkId: false);
+    return result;
+  }
+
   Future<DeployedContract> getDeployedContract() async {
     String abi = await rootBundle.loadString("assets/abi.json");
     final contract = DeployedContract(ContractAbi.fromJson(abi, "BasicDapp"),
